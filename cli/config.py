@@ -3,7 +3,7 @@ import typer
 
 from pathlib import Path
 
-from cli import __app_name__, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, SUCCESS
+from cli import __app_name__, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, SUCCESS
 
 CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
 CONFIG_FILE_PATH = CONFIG_DIR_PATH / 'config.ini'
@@ -27,7 +27,7 @@ def register_database(name: str, host: str, port: str, user: str, password: str)
     config_parser[name] = {"host": host, "port": port,
                            "user": user, "password": password}
     try:
-        with open(CONFIG_FILE_PATH, 'w') as config_file:
+        with open(CONFIG_FILE_PATH, 'a') as config_file:
             config_parser.write(config_file)
     except OSError:
         return CONFIG_WRITE_ERROR
@@ -35,6 +35,7 @@ def register_database(name: str, host: str, port: str, user: str, password: str)
 
 
 def unregister_database(name: str) -> int:
+    config_parser.read(CONFIG_FILE_PATH)
     result = config_parser.remove_section(name)
 
     if result is False:
@@ -48,7 +49,14 @@ def unregister_database(name: str) -> int:
     return SUCCESS
 
 
+def list_databases() -> list:
+    config_parser.read(CONFIG_FILE_PATH)
+    return config_parser.sections()
+
+
 def destroy() -> int:
+    if _check_if_exists() is False:
+        return CONFIG_NOT_FOUND
     try:
         CONFIG_FILE_PATH.unlink()
     except OSError:
@@ -58,3 +66,7 @@ def destroy() -> int:
     except OSError:
         return CONFIG_DIR_ERROR
     return SUCCESS
+
+
+def _check_if_exists() -> bool:
+    return CONFIG_FILE_PATH.exists()
