@@ -1,17 +1,30 @@
+import os
 import configparser
 import typer
 
 from pathlib import Path
+from cli import __app_name__, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, CONFIG_ALREADY_EXIST, SUCCESS
 
-from cli import __app_name__, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, SUCCESS
+from dotenv import load_dotenv
+
+load_dotenv()
 
 CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
+
+if os.environ.get("ENV") != 'production':
+    CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__) + '/test')
+
+
 CONFIG_FILE_PATH = CONFIG_DIR_PATH / 'config.ini'
+
 
 config_parser = configparser.ConfigParser()
 
 
 def init() -> int:
+    if _check_if_exists() is True:
+        return CONFIG_ALREADY_EXIST
+
     try:
         CONFIG_DIR_PATH.mkdir(exist_ok=True)
     except OSError:
