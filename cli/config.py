@@ -24,6 +24,9 @@ def init() -> int:
 
 
 def register_database(name: str, host: str, port: str, user: str, password: str) -> int:
+    if _check_if_exists() is False:
+        return CONFIG_NOT_FOUND
+
     config_parser[name] = {"host": host, "port": port,
                            "user": user, "password": password}
     try:
@@ -35,6 +38,9 @@ def register_database(name: str, host: str, port: str, user: str, password: str)
 
 
 def unregister_database(name: str) -> int:
+    if _check_if_exists() is False:
+        return CONFIG_NOT_FOUND
+
     config_parser.read(CONFIG_FILE_PATH)
     result = config_parser.remove_section(name)
 
@@ -50,6 +56,9 @@ def unregister_database(name: str) -> int:
 
 
 def list_databases() -> list:
+    if _check_if_exists() is False:
+        return CONFIG_NOT_FOUND
+
     config_parser.read(CONFIG_FILE_PATH)
     return config_parser.sections()
 
@@ -57,6 +66,7 @@ def list_databases() -> list:
 def destroy() -> int:
     if _check_if_exists() is False:
         return CONFIG_NOT_FOUND
+
     try:
         CONFIG_FILE_PATH.unlink()
     except OSError:

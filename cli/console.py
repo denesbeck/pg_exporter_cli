@@ -2,7 +2,7 @@ import typer
 
 from rich import print
 
-from cli import config, messages, SUCCESS, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND
+from cli import config, SUCCESS, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND
 
 app = typer.Typer()
 config_app = typer.Typer()
@@ -19,9 +19,9 @@ def init() -> None:
     if result == SUCCESS:
         print("[green]Configuration initialized successfully[/green]")
     elif result == CONFIG_DIR_ERROR:
-        print(f"[red]{messages[CONFIG_DIR_ERROR]}[/red]")
+        print("[red]Configuration directory error[/red]")
     elif result == CONFIG_FILE_ERROR:
-        print(f"[red]{messages[CONFIG_FILE_ERROR]}[/red]")
+        print("[red]Configuration file error[/red]")
 
 
 @config_app.command("destroy")
@@ -35,7 +35,7 @@ def destroy() -> None:
     elif result == CONFIG_FILE_ERROR:
         print("[red]Unable to remove config file[/red]")
     elif result == CONFIG_NOT_FOUND:
-        print("[red]Configuration not found[/red]")
+        print("[red]Configuration doesn't exist[/red]")
 
 
 @config_app.command("register")
@@ -49,9 +49,12 @@ def register() -> None:
                             confirmation_prompt=True)
     result = config.register_database(name, host, port, user, password)
     if result == SUCCESS:
-        print(f"[green]Database {name} registered successfully[/green]")
+        print(
+            f"[green]Database {name} registered successfully[/green]")
     elif result == CONFIG_WRITE_ERROR:
         print(f"[red]Unable to register database {name}[/red]")
+    elif result == CONFIG_NOT_FOUND:
+        print("[red]Configuration doesn't exist. Please initialize configuration.[/red]")
 
 
 @config_app.command("unregister")
@@ -60,11 +63,14 @@ def unregister() -> None:
     name = typer.prompt("Name")
     result = config.unregister_database(name)
     if result == SUCCESS:
-        print(f"[green]Database {name} unregistered successfully[/green]")
+        print(
+            f"[green]Database {name} unregistered successfully[/green]")
     elif result == CONFIG_WRITE_ERROR:
         print(f"[red]Unable to unregister database {name}[/red]")
     elif result == SECTION_NOT_FOUND:
         print(f"[red]Database {name} not found[/red]")
+    elif result == CONFIG_NOT_FOUND:
+        print("[red]Configuration doesn't exist. Please initialize configuration.[/red]")
 
 
 @config_app.command("list")
@@ -81,4 +87,5 @@ def list_databases():
 
 @config_app.command("path")
 def show_config_path():
-    print(f"[cyan]{config.CONFIG_FILE_PATH}[/cyan]")
+    """Show configuration file path."""
+    print(f"[cyan][bold]{config.CONFIG_FILE_PATH}[/bold][/cyan]")
