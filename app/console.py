@@ -3,7 +3,7 @@ from typing import Optional
 
 from rich import print
 
-from cli import config, SUCCESS, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, CONFIG_ALREADY_EXIST, __app_name__, __version__
+from app import config, SUCCESS, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, CONFIG_ALREADY_EXIST, __app_name__, __version__
 
 app = typer.Typer()
 config_app = typer.Typer()

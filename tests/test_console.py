@@ -1,5 +1,5 @@
 from typer.testing import CliRunner
-from cli import console, config, __app_name__, __version__
+from app import console, config, __app_name__, __version__
 
 runner = CliRunner()
 app = console.app
@@ -25,7 +25,7 @@ def test_init_2():
     assert config.CONFIG_DIR_PATH.exists() is True
 
 
-def test_list_empty():
+def test_list_1():
     result = runner.invoke(app, ["config", "list"])
     assert result.exit_code == 0
     assert 'No databases registered\n' in result.stdout
@@ -38,19 +38,34 @@ def test_register():
     assert 'Database test-1 registered successfully\n' in result.stdout
 
     result = runner.invoke(app, [
-                           "config", "register"], input='test-2\nhost-2\n5432\nuser-2\npwd-2\npwd-2\n', )
+                           "config", "register"], input='test-2\nhost-2\n5432\nuser-2\npwd-2\npwd-2\n')
     assert result.exit_code == 0
     assert 'Database test-2 registered successfully\n' in result.stdout
 
     result = runner.invoke(app, [
-                           "config", "register"], input='test-3\nhost-3\n5432\nuser-3\npwd-3\npwd-3\n', )
+        "config", "register"], input='test-3\nhost-3\n5432\nuser-3\npwd-3\npwd-3\n')
     assert result.exit_code == 0
     assert 'Database test-3 registered successfully\n' in result.stdout
 
-#     result = runner.invoke(app, [
-#                            "config", "list"])
-#     assert result.exit_code == 0
-#     assert 'No databases registered\n' in result.stdout
+
+def test_list_2():
+    result = runner.invoke(app, [
+                           "config", "list"])
+    assert result.exit_code == 0
+    assert 'Registered databases\ntest-1\ntest-2\ntest-3\n' in result.stdout
+
+
+def test_unregister():
+    result = runner.invoke(app, ["config", "unregister"], input='test-2\n')
+    assert result.exit_code == 0
+    assert 'Database test-2 unregistered successfully\n' in result.stdout
+
+
+def test_list_3():
+    result = runner.invoke(app, [
+                           "config", "list"])
+    assert result.exit_code == 0
+    assert 'Registered databases\ntest-1\ntest-3\n' in result.stdout
 
 
 def test_destroy():
