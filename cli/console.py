@@ -101,7 +101,9 @@ def list_databases():
     """List registered databases."""
     result = config.list_databases()
     if result == CONFIG_NOT_FOUND:
-        print("[red]No databases registered[/red]")
+        print("[red]Configuration doesn't exist[/red]")
+    elif len(result) == 0:
+        return print("[red]No databases registered[/red]")
     else:
         print("[bold]Registered databases[/bold]")
         for database in result:
