@@ -6,13 +6,14 @@ from pathlib import Path
 from app import __app_name__, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, CONFIG_ALREADY_EXIST, SUCCESS
 
 from dotenv import load_dotenv
-
 load_dotenv()
+
+app_env = os.environ.get("APP_ENV")
 
 CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
 
-if os.environ.get("APP_ENV") != 'production':
-    CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__)) / 'test'
+if app_env != 'production':
+    CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__)) / app_env
 
 CONFIG_FILE_PATH = CONFIG_DIR_PATH / 'config.ini'
 
