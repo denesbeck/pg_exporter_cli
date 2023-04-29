@@ -1,4 +1,4 @@
-from cli import console
+from app import console
 
 
 def main():

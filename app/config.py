@@ -12,7 +12,7 @@ load_dotenv()
 CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
 
 if os.environ.get("APP_ENV") != 'production':
-    CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__+"/test"))
+    CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__)) / 'test'
 
 CONFIG_FILE_PATH = CONFIG_DIR_PATH / 'config.ini'
 
