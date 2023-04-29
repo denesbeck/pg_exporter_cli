@@ -24,7 +24,7 @@ def init() -> int:
 
     try:
         print(CONFIG_DIR_PATH)
-        CONFIG_DIR_PATH.mkdir(exist_ok=True)
+        CONFIG_DIR_PATH.mkdir(exist_ok=True, parents=True)
     except OSError:
         return CONFIG_DIR_ERROR
     try:
