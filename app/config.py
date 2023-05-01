@@ -34,12 +34,12 @@ def init() -> int:
     return SUCCESS
 
 
-def register_database(name: str, host: str, port: str, user: str, password: str) -> int:
+def register_database(name: str, host: str, port: str, database: str, user: str, password: str) -> int:
     if _check_if_exists() is False:
         return CONFIG_NOT_FOUND
 
     config_parser = configparser.ConfigParser()
-    config_parser[name] = {"host": host, "port": port,
+    config_parser[name] = {"host": host, "port": port, "database": database,
                            "user": user, "password": password}
     try:
         with open(CONFIG_FILE_PATH, 'a') as config_file:
@@ -75,6 +75,18 @@ def list_databases() -> list:
     config_parser = configparser.ConfigParser()
     config_parser.read(CONFIG_FILE_PATH)
     return config_parser.sections()
+
+
+def read_database_config(name: str) -> dict | int:
+    if _check_if_exists() is False:
+        return CONFIG_NOT_FOUND
+
+    config_parser = configparser.ConfigParser()
+    try:
+        config_parser.read(CONFIG_FILE_PATH)
+        return config_parser[name]
+    except KeyError:
+        return SECTION_NOT_FOUND
 
 
 def destroy() -> int:

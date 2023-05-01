@@ -2,15 +2,20 @@ import typer
 from typing import Optional
 
 from rich import print
+from rich.table import Table
 
-from app import config, SUCCESS, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, CONFIG_ALREADY_EXIST, __app_name__, __version__
+from app import backup, config, SUCCESS, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, CONFIG_ALREADY_EXIST, DATABASE_NOT_FOUND, S3_ERROR, __app_name__, __version__
 
 app = typer.Typer()
 config_app = typer.Typer()
-dumper_app = typer.Typer()
+backup_app = typer.Typer()
+migrate_app = typer.Typer()
+
+configuration_not_found_default_message = "[red]Configuration doesn't exist[/red]"
 
 app.add_typer(config_app, name="config")
-app.add_typer(dumper_app, name="dump")
+app.add_typer(backup_app, name="backup")
+app.add_typer(migrate_app, name="migrate")
 
 
 def _version_callback(value: bool) -> None:
@@ -58,7 +63,7 @@ def destroy() -> None:
     elif result == CONFIG_FILE_ERROR:
         print("[red]Unable to remove config file[/red]")
     elif result == CONFIG_NOT_FOUND:
-        print("[red]Configuration doesn't exist[/red]")
+        print(configuration_not_found_default_message)
 
 
 @config_app.command("register")
@@ -67,10 +72,12 @@ def register() -> None:
     name = typer.prompt("Name")
     host = typer.prompt("Host")
     port = typer.prompt("Port")
+    database = typer.prompt("Database")
     user = typer.prompt("Username")
     password = typer.prompt("Password", hide_input=True,
                             confirmation_prompt=True)
-    result = config.register_database(name, host, port, user, password)
+    result = config.register_database(
+        name, host, port, database, user, password)
     if result == SUCCESS:
         print(
             f"[green]Database {name} registered successfully[/green]")
@@ -101,7 +108,7 @@ def list_databases():
     """List registered databases."""
     result = config.list_databases()
     if result == CONFIG_NOT_FOUND:
-        print("[red]Configuration doesn't exist[/red]")
+        print(configuration_not_found_default_message)
     elif len(result) == 0:
         return print("[red]No databases registered[/red]")
     else:
@@ -110,7 +117,54 @@ def list_databases():
             print(f"[green]{database}[/green]")
 
 
+@config_app.command("read")
+def read_database_config():
+    """Read database configuration."""
+    name = typer.prompt("Name")
+    result = config.read_database_config(name)
+    if result == CONFIG_NOT_FOUND:
+        print(configuration_not_found_default_message)
+    elif result == SECTION_NOT_FOUND:
+        print(f"[red]Database {name} not found[/red]")
+    else:
+        print("[bold]Database configuration[/bold]")
+        table = Table("Key", "Value")
+        table.add_row("Host", result["host"])
+        table.add_row("Port", result["port"])
+        table.add_row("Database", result["database"])
+        table.add_row("User", result["user"])
+        table.add_row("Password", result["password"])
+        print(table)
+
+
 @config_app.command("path")
 def show_config_path():
     """Show configuration file path."""
-    print(f"[cyan][bold]{config.CONFIG_FILE_PATH}[/bold][/cyan]")
+    print(f"[cyan]{config.CONFIG_FILE_PATH}[/cyan]")
+
+
+@backup_app.command("dump")
+def dump_database():
+    """Dump database and upload it to AWS S3."""
+    name = typer.prompt("Name")
+    result = backup.dump_database(name)
+    if result == CONFIG_NOT_FOUND:
+        print(configuration_not_found_default_message)
+    elif result == DATABASE_NOT_FOUND:
+        print(f"[red]Database {name} not found[/red]")
+    elif result == SUCCESS:
+        print(f"[green]Database {name} dumped successfully[/green]")
+    elif result == S3_ERROR:
+        print(f"[red]Unable to upload database {name} to S3[/red]")
+
+
+@backup_app.command("list")
+def list_backups():
+    """List backups."""
+    pass
+
+
+@backup_app.command("restore")
+def restore_backup():
+    """Restore backup."""
+    pass
