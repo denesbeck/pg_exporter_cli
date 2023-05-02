@@ -43,12 +43,12 @@ def dump_database(name: str):
         return s3_res
 
 
-def list_backups():
-    pass
+def list_backups() -> int | list:
+    return s3.list_backups()
 
 
-def restore_backup():
-    pass
+def restore_backup(name: str) -> int:
+    s3.restore_backup(name)
 
 
 def _delete_backup_file():

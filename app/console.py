@@ -161,10 +161,23 @@ def dump_database():
 @backup_app.command("list")
 def list_backups():
     """List backups."""
-    pass
+    result = backup.list_backups()
+    if result == S3_ERROR:
+        print("[red]Unable to list backups[/red]")
+    else:
+        print('[bold]Backups[/bold]')
+        table = Table("#", "Name")
+        for i, obj in enumerate(result.objects.all()):
+            table.add_row(str(i+1), obj.key)
+        print(table)
 
 
 @backup_app.command("restore")
 def restore_backup():
     """Restore backup."""
-    pass
+    name = typer.prompt("Name")
+    result = backup.restore_backup(name)
+    if result == S3_ERROR:
+        print(f"[red]Unable to restore backup {name}[/red]")
+    elif result == SUCCESS:
+        print(f"[green]Backup {name} restored successfully[/green]")
