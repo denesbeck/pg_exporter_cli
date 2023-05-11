@@ -34,7 +34,11 @@ def list_backups() -> int | list:
                                      region_name=region,
                                      aws_access_key_id=access_key_id,
                                      aws_secret_access_key=secret_access_key)
-        return s3_resource.Bucket(bucket)
+        s3_bucket = s3_resource.Bucket(bucket)
+        backups = s3_bucket.objects.all()
+        backups = sorted(
+            backups, key=lambda backup: backup.last_modified, reverse=True)
+        return [backup.key for backup in backups]
     except ClientError:
         return S3_ERROR
 

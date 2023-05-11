@@ -2,9 +2,10 @@ import typer
 from typing import Optional
 
 from rich import print
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from app import backup, config, SUCCESS, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, CONFIG_ALREADY_EXIST, DATABASE_NOT_FOUND, S3_ERROR, __app_name__, __version__
+from app import backup, config, SUCCESS, CONFIG_DIR_ERROR, CONFIG_FILE_ERROR, CONFIG_WRITE_ERROR, SECTION_NOT_FOUND, CONFIG_NOT_FOUND, CONFIG_ALREADY_EXIST, DATABASE_ERROR, S3_ERROR, __app_name__, __version__
 
 app = typer.Typer()
 config_app = typer.Typer()
@@ -150,7 +151,7 @@ def dump_database():
     result = backup.dump_database(name)
     if result == CONFIG_NOT_FOUND:
         print(configuration_not_found_default_message)
-    elif result == DATABASE_NOT_FOUND:
+    elif result == DATABASE_ERROR:
         print(f"[red]Database {name} not found[/red]")
     elif result == SUCCESS:
         print(f"[green]Database {name} dumped successfully[/green]")
@@ -165,19 +166,29 @@ def list_backups():
     if result == S3_ERROR:
         print("[red]Unable to list backups[/red]")
     else:
-        print('[bold]Backups[/bold]')
-        table = Table("#", "Name")
-        for i, obj in enumerate(result.objects.all()):
-            table.add_row(str(i+1), obj.key)
-        print(table)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            progress.add_task(description="Listing...", total=None)
+            table = Table("#", "Backup Name")
+            for index, item in enumerate(result):
+                table.add_row(str(index+1), item)
+            print(table)
 
 
 @backup_app.command("restore")
 def restore_backup():
     """Restore backup."""
-    name = typer.prompt("Name")
-    result = backup.restore_backup(name)
+    backup_name = typer.prompt("Backup name")
+    target_database = typer.prompt("Target database")
+    result = backup.restore_backup(backup_name, target_database)
     if result == S3_ERROR:
-        print(f"[red]Unable to restore backup {name}[/red]")
+        print(f"[red]Unable to restore backup {backup_name}[/red]")
+    elif result == CONFIG_NOT_FOUND:
+        print(configuration_not_found_default_message)
+    elif result == DATABASE_ERROR:
+        print(f"[red]Database {target_database} not found[/red]")
     elif result == SUCCESS:
-        print(f"[green]Backup {name} restored successfully[/green]")
+        print(f"[green]Backup {backup_name} restored successfully[/green]")
